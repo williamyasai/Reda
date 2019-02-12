@@ -35,7 +35,7 @@ def parse():
     os.chdir('../Reda_Data')
     f = pd.read_csv('twcs.csv')
     f = f['text']
-    vocab = set()
+    vocab = []
     sentences = []
     i = 0
     for index,row in f.to_frame().iterrows():
@@ -43,11 +43,11 @@ def parse():
         sentences.append(row['text'].split())
         for word in words:
             if '@' not in word:
-                vocab.add(word)
+                vocab.append(word)
         i += 1
         if i == 1000:
             break
-    return list(vocab),sentences
+    return vocab,sentences
 
 def generate_batch(batch_size,num_skips,skip_window):
     global data_index
