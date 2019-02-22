@@ -1,31 +1,37 @@
 
-class cbow:
+class skipgram:
 
-    def __init__(self,windowsize = 1,vocab,embeddingsize = 1,batchsize = 1):
-        self.windowsize = windowsize
-        self.embeddingsize = 1
-        self.batchsize = batchsize
-        self.vocabulary = vocab
+    '''
+    These are the model parameters
+    '''
+    def __init__(self,windowsize = 1,vocab = [],embeddingsize = 1,batchsize = 1,negativesize = 1):
+        self.window_size = windowsize
+        self.embedding_size = embeddingsize
+        self.batch_size = batchsize
+        self.negative_size = negativesize
+        self.vocabulary_size = len(vocab)
         self.vocabulary = vocab
 
-    
+    def organize_data():
+        word_freq = [['unknown',-1]]
+        word_freq.extend(collections.Counter(words).most_common(n_words - 1))
     def run(self):
 
         graph = tf.Graph()
 
         with graph.as_default():
             # batch size
-            with tf.name_scope('inputs')
-                train_inputs = tf.placeholder(tf.int32, shape=[batch_size])
-                train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
+            with tf.name_scope('inputs'):
+                train_inputs = tf.placeholder(tf.int32, shape=[self.batch_size])
+                train_labels = tf.placeholder(tf.int32, shape=[self.batch_size, 1])
             # linear function mapping vector of size (V,1) to (E,1).
-            with tf.name_scope('embeddings')
+            with tf.name_scope('embeddings'):
                 embeddings = tf.Variable(tf.random_uniform([self.vocabulary_size, self.embedding_size], -1.0, 1.0))
-
+                embed = tf.nn.embedding_lookup(embeddings, train_inputs)
             # negative sampling weighs and biases
-            with tf.name_scope('weights')
+            with tf.name_scope('weights'):
                 nce_weights = tf.Variable(tf.truncated_normal([self.vocabulary_size, self.embedding_size],stddev=1.0 / math.sqrt(self.embedding_size)))
-            with tf.name_scope('biases')
+            with tf.name_scope('biases'):
                 nce_biases = tf.Variable(tf.zeros([self.vocabulary_size]))
 
             with tf.name_scope('loss'):
