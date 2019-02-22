@@ -17,6 +17,9 @@ class skipgram:
         self.word_freq = [[]]
         self.dictionary = dict()
         self.reversed_dictionary = dict()
+        self.valid_size = 16  # Random set of words to evaluate similarity on.
+        self.valid_window = 100  # Only pick dev samples in the head of the distribution.
+        self.valid_examples = np.random.choice(self.valid_window, self.valid_size, replace=False)
     def organize_data(self,words):
         n_words = self.vocabulary_size
         word_freq = [['unknown',-1]]
@@ -59,7 +62,7 @@ class skipgram:
             batch[i * self.num_skips + j] = buffer[self.skip_window]
             labels[i * self.num_skips + j, 0] = buffer[context_word]
           if data_index == len(self.data):
-            buffer.extend(data[0:span])
+            buffer.extend(self.data[0:span])
             data_index = span
           else:
             buffer.append(self.data[data_index])
@@ -78,7 +81,7 @@ class skipgram:
             with tf.name_scope('inputs'):
                 train_inputs = tf.placeholder(tf.int32, shape=[self.batch_size])
                 train_labels = tf.placeholder(tf.int32, shape=[self.batch_size, 1])
-                valid_dataset = tf.constant(valid_examples, dtype=tf.int32)
+                valid_dataset = tf.constant(self.valid_examples, dtype=tf.int32)
             # linear function mapping vector of size (V,1) to (E,1).
             with tf.name_scope('embeddings'):
                 embeddings = tf.Variable(tf.random_uniform([self.vocabulary_size, self.embedding_size], -1.0, 1.0))
@@ -103,7 +106,9 @@ class skipgram:
 
             with tf.name_scope('optimizer'):
                 optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
-
+                # we can also use the adgrad optimizer. 
+                # It supposedly does better with multiple variables to optimize.
+                #optimizer = tf.train.AdagradOptimizer(1.0).minimize(loss)
             norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keepdims=True))
             normalized_embeddings = embeddings / norm
             valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings,valid_dataset)      
@@ -121,16 +126,15 @@ class skipgram:
         num_steps = 100001
         with tf.Session(graph=graph) as session:
             # Open a writer to write summaries.
-            writer = tf.summary.FileWriter(log_dir, session.graph)
+            writer = tf.summary.FileWriter("../tfsessions", session.graph)
 
             # We must initialize all variables before we use them.
             init.run()
             print('Initialized')
 
             average_loss = 0
-            for step in xrange(num_steps):
-              batch_inputs, batch_labels = generate_batch(self.batch_size, self.num_skips,
-                                                          self.skip_window)
+            for step in range(num_steps):
+              batch_inputs, batch_labels = self.generate_batch()
               feed_dict = {train_inputs: batch_inputs, train_labels: batch_labels}
 
               # Define metadata variable.
@@ -163,21 +167,21 @@ class skipgram:
               # Note that this is expensive (~20% slowdown if computed every 500 steps)
               if step % 10000 == 0:
                 sim = similarity.eval()
-                for i in xrange(valid_size):
-                  valid_word = reverse_dictionary[valid_examples[i]]
+                for i in range(self.valid_size):
+                  valid_word = self.reversed_dictionary[self.valid_examples[i]]
                   top_k = 8  # number of nearest neighbors
                   nearest = (-sim[i, :]).argsort()[1:top_k + 1]
                   log_str = 'Nearest to %s:' % valid_word
-                  for k in xrange(top_k):
-                    close_word = reverse_dictionary[nearest[k]]
+                  for k in range(top_k):
+                    close_word = self.reversed_dictionary[nearest[k]]
                     log_str = '%s %s,' % (log_str, close_word)
                   print(log_str)
             final_embeddings = normalized_embeddings.eval()
 
             # Write corresponding labels for the embeddings.
             with open(log_dir + '/metadata.tsv', 'w') as f:
-              for i in xrange(vocabulary_size):
-                f.write(reverse_dictionary[i] + '\n')
+              for i in range(self.vocabulary_size):
+                f.write(self.reverse_dictionary[i] + '\n')
 
             # Save the model for checkpoints.
             saver.save(session, os.path.join(log_dir, 'model.ckpt'))
