@@ -20,6 +20,7 @@ class skipgram:
         self.valid_size = 16  # Random set of words to evaluate similarity on.
         self.valid_window = 100  # Only pick dev samples in the head of the distribution.
         self.valid_examples = np.random.choice(self.valid_window, self.valid_size, replace=False)
+        self.log_dir = "../tfsessions"
     def organize_data(self,words):
         n_words = self.vocabulary_size
         word_freq = [['unknown',-1]]
@@ -105,10 +106,10 @@ class skipgram:
             tf.summary.scalar('loss', loss)
 
             with tf.name_scope('optimizer'):
-                optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
+                #optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
                 # we can also use the adgrad optimizer. 
                 # It supposedly does better with multiple variables to optimize.
-                #optimizer = tf.train.AdagradOptimizer(1.0).minimize(loss)
+                optimizer = tf.train.AdagradOptimizer(1.0).minimize(loss)
             norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keepdims=True))
             normalized_embeddings = embeddings / norm
             valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings,valid_dataset)      
@@ -179,19 +180,19 @@ class skipgram:
             final_embeddings = normalized_embeddings.eval()
 
             # Write corresponding labels for the embeddings.
-            with open(log_dir + '/metadata.tsv', 'w') as f:
+            with open(self.log_dir + '/metadata.tsv', 'w') as f:
               for i in range(self.vocabulary_size):
-                f.write(self.reverse_dictionary[i] + '\n')
+                f.write(self.reversed_dictionary[i] + '\n')
 
             # Save the model for checkpoints.
-            saver.save(session, os.path.join(log_dir, 'model.ckpt'))
+            saver.save(session, os.path.join(self.log_dir, 'model.ckpt'))
 
             # Create a configuration for visualizing embeddings with the labels in
             # TensorBoard.
             config = projector.ProjectorConfig()
             embedding_conf = config.embeddings.add()
             embedding_conf.tensor_name = embeddings.name
-            embedding_conf.metadata_path = os.path.join(log_dir, 'metadata.tsv')
+            embedding_conf.metadata_path = os.path.join(self.log_dir, 'metadata.tsv')
             projector.visualize_embeddings(writer, config)
 
             writer.close()

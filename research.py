@@ -45,7 +45,7 @@ def parse():
             if '@' not in word:
                 vocab.append(word)
         i += 1
-        if(i == 50000):
+        if(i == 100000):
             break
     return vocab,sentences
 
