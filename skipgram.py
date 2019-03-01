@@ -43,7 +43,7 @@ class skipgram:
         self.word_freq = data
         self.dictionary = dictionary
         self.reversed_dictionary = reversed_dictionary
-
+        self.vocabulary_size = len(reversed_dictionary)
     def generate_batch(self):
         data_index = self.dataindex
         assert self.batch_size % self.num_skips == 0
@@ -124,7 +124,7 @@ class skipgram:
             # Create a saver.
             saver = tf.train.Saver()
             
-        num_steps = 100001
+        num_steps = 5000
         with tf.Session(graph=graph) as session:
             # Open a writer to write summaries.
             writer = tf.summary.FileWriter("../tfsessions", session.graph)
@@ -196,4 +196,4 @@ class skipgram:
             projector.visualize_embeddings(writer, config)
 
             writer.close()
-
+            return final_embeddings
