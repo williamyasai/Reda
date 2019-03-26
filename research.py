@@ -46,7 +46,7 @@ def parse():
                 vocab.append(word)
         i += 1
 
-        if(i==200000):
+        if(i==800000):
             break
     return vocab,sentences
 

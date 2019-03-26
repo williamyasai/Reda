@@ -25,9 +25,10 @@ class skipgram:
         self.log_dir = "../tfsessions"
     def organize_data(self,words):
         n_words = self.vocabulary_size
-        word_freq = [['unknown',-1]]
+        word_freq = [['unk',-1]]
         word_freq.extend(collections.Counter(words).most_common(n_words - 1))
         dictionary = dict()
+        i = 0;
         for word,_ in word_freq:
             dictionary[word] = len(dictionary)
         data = []
@@ -45,7 +46,7 @@ class skipgram:
         self.word_freq = data
         self.dictionary = dictionary
         self.reversed_dictionary = reversed_dictionary
-        self.vocabulary_size = len(reversed_dictionary) - 1
+        self.vocabulary_size = len(reversed_dictionary) 
     def generate_batch(self):
         data_index = self.dataindex
         assert self.batch_size % self.num_skips == 0
@@ -58,6 +59,7 @@ class skipgram:
           data_index = 0
         buffer.extend(self.data[data_index:data_index + span])
         data_index += span
+       
         for i in range(self.batch_size // self.num_skips):
           context_words = [w for w in range(span) if w != self.skip_window]
           words_to_use = random.sample(context_words, self.num_skips)
@@ -166,20 +168,6 @@ class skipgram:
                 # batches.
                 print('Average loss at step ', step, ': ', average_loss)
                 average_loss = 0
-            '''
-              # Note that this is expensive (~20% slowdown if computed every 500 steps)
-              if step % 10000 == 0:
-                sim = similarity.eval()
-                for i in range(self.valid_size):
-                  valid_word = self.reversed_dictionary[self.valid_examples[i]]
-                  top_k = 8  # number of nearest neighbors
-                  nearest = (-sim[i, :]).argsort()[1:top_k + 1]
-                  log_str = 'Nearest to %s:' % valid_word
-                  for k in range(top_k):
-                    close_word = self.reversed_dictionary[nearest[k]]
-                    log_str = '%s %s,' % (log_str, close_word)
-                  print(log_str)
-                  '''
             final_embeddings = normalized_embeddings.eval()
 
             # Write corresponding labels for the embeddings.

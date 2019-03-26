@@ -1,0 +1,35 @@
+Window Size
+
+Control:
+	Batch_size = 64
+	Embedding_size = 64 
+	skip window = 1
+	num_skips = 2
+	negative sampled = 16
+Low Window	
+	Batch_size = 64
+	Embedding_size = 64 
+	skip window = 2
+	num_skips = 4
+	negative sampled = 16
+
+High Window
+	Batch_size = 64
+	Embedding_size = 64 
+	skip window = 8
+	num_skips = 4
+	negative sampled = 16
+
+Low skip 
+	Batch_size = 64
+	Embedding_size = 64 
+	skip window = 8
+	num_skips = 1
+	negative sampled = 16
+
+High skip
+	Batch_size = 64
+	Embedding_size = 64 
+	skip window = 8
+	num_skips = 1
+	negative sampled = 16
