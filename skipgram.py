@@ -3,6 +3,8 @@ import random
 import tensorflow as tf
 import numpy as np
 import math
+import os
+from tensorflow.contrib.tensorboard.plugins import projector
 class skipgram:
 
     def __init__(self,embeddingsize = 1,batchsize = 1,negativesize = 1,num_skips = 1, skip_window = 1,vocab_size = 1):
@@ -43,7 +45,7 @@ class skipgram:
         self.word_freq = data
         self.dictionary = dictionary
         self.reversed_dictionary = reversed_dictionary
-        self.vocabulary_size = len(reversed_dictionary)
+        self.vocabulary_size = len(reversed_dictionary) - 1
     def generate_batch(self):
         data_index = self.dataindex
         assert self.batch_size % self.num_skips == 0
@@ -124,7 +126,7 @@ class skipgram:
             # Create a saver.
             saver = tf.train.Saver()
             
-        num_steps = 5000
+        num_steps = 50000
         with tf.Session(graph=graph) as session:
             # Open a writer to write summaries.
             writer = tf.summary.FileWriter("../tfsessions", session.graph)
@@ -164,7 +166,7 @@ class skipgram:
                 # batches.
                 print('Average loss at step ', step, ': ', average_loss)
                 average_loss = 0
-
+            '''
               # Note that this is expensive (~20% slowdown if computed every 500 steps)
               if step % 10000 == 0:
                 sim = similarity.eval()
@@ -177,12 +179,13 @@ class skipgram:
                     close_word = self.reversed_dictionary[nearest[k]]
                     log_str = '%s %s,' % (log_str, close_word)
                   print(log_str)
+                  '''
             final_embeddings = normalized_embeddings.eval()
 
             # Write corresponding labels for the embeddings.
-            with open(self.log_dir + '/metadata.tsv', 'w') as f:
-              for i in range(self.vocabulary_size):
-                f.write(self.reversed_dictionary[i] + '\n')
+            #with open(self.log_dir + '/metadata.tsv', 'w') as f:
+             # for i in range(self.vocabulary_size):
+              #  f.write(self.reversed_dictionary[i] + '\n')
 
             # Save the model for checkpoints.
             saver.save(session, os.path.join(self.log_dir, 'model.ckpt'))
