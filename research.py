@@ -32,6 +32,7 @@ def parseTwittercsv():
     return responeses
 
 def parse():
+    filename_to = "twcsProcessed.txt"
     os.chdir('../Reda_Data')
     f = pd.read_csv('twcs.csv')
     f = f['text']
@@ -46,12 +47,14 @@ def parse():
                 vocab.append(word)
         i += 1
 
-        if(i==800000):
-            break
+    with open(filename_to, 'w', encoding='utf-8') as f:
+        for sentence in sentences:
+            print(sentence.lower(), file=f)
     return vocab,sentences
 
 
 def main():
     vocab, sentences = parse()
     onehot = getOneHot(vocab)
+
 
